@@ -15,7 +15,10 @@ const sessionManagement = async (context) => {
 		const mssql = await sql.connect(process.env.DB_CONNECTION);
 		console.log(`Session Management: ${moment().format("MMM Do YYYY h:mm A")}`);
 		const sessions = await mssql.request().execute("SessionReconciliation2");
-		(sessions.recordset || []).forEach((s) => {
+		console.log(`************session************`);
+		console.log(sessions);
+		console.log(`********END session************`);
+		((sessions && sessions.recordset) || []).forEach((s) => {
 			console.log(
 				`completed ${s.appointmentType}, aptId:${s.appointmentId} for trainer:${
 					s.trainerId
@@ -30,7 +33,9 @@ const sessionManagement = async (context) => {
 				);
 			}
 		});
-		console.log(`Number of sessions affected: ${sessions.length || 0}`);
+		console.log(
+			`Number of sessions affected: ${(sessions && sessions.length) || 0}`
+		);
 		context.done(null, "Success");
 	} catch (err) {
 		console.error(err);
