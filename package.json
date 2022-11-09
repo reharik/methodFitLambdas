@@ -11,5 +11,8 @@
   "dependencies": {
     "moment": "^2.27.0",
     "mssql": "^6.2.1"
+  },
+  "serverless": {
+    "org": "reharik"
   }
 }
