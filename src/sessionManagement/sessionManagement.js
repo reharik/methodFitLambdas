@@ -9,33 +9,21 @@
 
 const sql = require("mssql");
 const moment = require("moment");
+const summary = require('./summary');
+const processSessions = require('./processSessions');
+const getUnresolvedAppointments = require('./getUnresolvedAppointments');
 
 const sessionManagement = async (context) => {
 	try {
-		const mssql = await sql.connect(process.env.DB_CONNECTION);
 		console.log(`Session Management: ${moment().format("MMM Do YYYY h:mm A")}`);
-		const sessions = await mssql.request().execute("SessionReconciliation");
-		console.log(`************session************`);
-		console.log(sessions);
-		console.log(`********END session************`);
-		((sessions && sessions.recordset) || []).forEach((s) => {
-			console.log(
-				`completed ${s.appointmentType}, aptId:${s.appointmentId} for trainer:${
-					s.trainerId
-				}-${s.trainerName} and client:${s.clientId}-${
-					s.clientName
-				} on date: ${moment(s.startTime).format("MMM Do YYYY h:mm A")}`
-			);
-			if (s.inarrears) {
-				console.log(`Client:${0}, ID:{1} was in arrears`);
-				_logger.LogInfo(
-					`Client:${s.clientName}, ID:${s.clientId} was in arrears`
-				);
-			}
-		});
-		console.log(
-			`Number of sessions affected: ${(sessions && sessions.length) || 0}`
-		);
+
+		const mssql = await sql.connect(process.env.DB_CONNECTION);
+		const unresolvedAppointments= await getUnresolvedAppointments(mssql);
+		const completedSessions = unresolvedAppointments.length >0
+		? await processSessions(unresolvedAppointments, sql, mssql)
+		: [];
+
+		summary(completedSessions);
 		context.done(null, "Success");
 	} catch (err) {
 		console.error(err);
@@ -44,3 +32,5 @@ const sessionManagement = async (context) => {
 };
 
 module.exports = sessionManagement;
+
+
