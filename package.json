@@ -9,7 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "moment": "^2.27.0",
+    "luxon": "^3.1.0",
     "mssql": "^6.2.1"
   },
   "serverless": {

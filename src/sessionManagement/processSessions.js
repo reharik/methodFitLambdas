@@ -8,6 +8,7 @@ const processSessions = async (unresolvedAppointments, sql, mssql) => {
 		let sqlString = '';
 		let i = 0;
 		let appointmentIds = []
+		let squery=[];
 		while(i<unresolvedAppointments.length) {
 			const unresolved = unresolvedAppointments[i];
 
@@ -34,10 +35,16 @@ const processSessions = async (unresolvedAppointments, sql, mssql) => {
 					transaction = await transaction.begin();
 					const request = new sql.Request(transaction)
 					await request.query(sqlString);
-					await	transaction.commit();
-					console.log(`************"commit in success"************`);
-					console.log("commit in success");
-					console.log(`********END "commit in success"************`);
+					
+					const ids = unresolvedAppointments.map(x => x.AppointmentId).join(',');			
+					// for debugging and comparison to sproc purposes
+					const sessionsQuery = await request.query(sqlQueries.completedSessions(ids));
+					squery = [...squery, ...sessionsQuery.recordset];
+
+					await	transaction.rollback();
+					console.log(`************"rollback in success"************`);
+					console.log("rollback in success");
+					console.log(`********END "rollback in success"************`);
 				}catch(err) {
 					console.log(`************err************`);
 					console.log(err);
@@ -49,18 +56,21 @@ const processSessions = async (unresolvedAppointments, sql, mssql) => {
 			}
 			i++;
 		}
-
+		return squery;
 	} catch (err) { 
 		console.log(`************err.messagage************`);
 		console.log(err);
 		console.log(`********END err.messagage************`);
 		throw err;
 	}
+	
+	// not necessary since I'm rolling back so the query will be empty
+	// const request = mssql.request();
+	// const ids = unresolvedAppointments.map(x => x.AppointmentId).join(',');			
+	// const sessionsQuery = await request.query(sqlQueries.completedSessions(ids));
+	// return sessionsQuery.recordset;
 
-	const request = mssql.request();
-	const ids = unresolvedAppointments.map(x => x.AppointmentId).join(',');			
-	const sessionsQuery = await request.query(sqlQueries.completedSessions(ids));
-	return sessionsQuery.recordset;
+
 }
 
 module.exports = processSessions;

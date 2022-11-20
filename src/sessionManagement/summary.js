@@ -1,3 +1,4 @@
+const {DateTime} = require("luxon");
 
 const summary = (sessions) => {
 	console.log(`************session************`);
@@ -9,8 +10,8 @@ const summary = (sessions) => {
 				s.trainerId
 			}-${s.trainerName} and client:${s.clientId}-${
 				s.clientName
-			} on date: ${moment(s.startTime).format("MMM Do YYYY h:mm A")}`
-		);
+			} on date: ${DateTime.fromISO(s.startTime).toFormat("MMM Do YYYY h:mm A")}`
+		); 
 		if (s.inarrears) {
 			console.log(`Client:${0}, ID:{1} was in arrears`);
 			_logger.LogInfo(
