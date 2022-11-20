@@ -87,15 +87,6 @@ inner join appointment_client ac on a.entityId = ac.AppointmentId
 inner join client c on ac.clientId= c.entityId
 WHERE a.entityId in (${unresolvedAppointmentIds})
 ;`,
-	validateUnresolvedAppointments: (appoi*ntmentIds) => 
-`select u.FirstName as TrainerFirstName,
-u.LastName as TrainerLastName,
-ts.* from TrainerSessions ts
-inner join [user] u on u.EntityId = ts.TrainerId
-where ts.appId in (${appointmentIds})
-and ts.appointmentDate > CONVERT(datetime2, '${DateTime.now().minus({"month":1}).toISO()}', 126)
-and ts.
-`
 } 
 
 module.exports =sqlQueries

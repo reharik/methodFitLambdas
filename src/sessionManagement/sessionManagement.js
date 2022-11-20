@@ -12,7 +12,6 @@ const {DateTime} = require("luxon");
 const summary = require('./summary');
 const processSessions = require('./processSessions');
 const getUnresolvedAppointments = require('./getUnresolvedAppointments');
-const validateUnresolvedAppointments = require('./validateUnresolvedAppointments');
 
 const sessionManagement = async (context) => {
 	try {
@@ -24,13 +23,7 @@ const sessionManagement = async (context) => {
 		console.log(`************unresolvedAppointments************`);
 		console.log(unresolvedAppointments);
 		console.log(`********END unresolvedAppointments************`);
-		const invalidUnresolvedAppointments = await validateUnresolvedAppointments(mssql,unresolvedAppointments);
-		if(invalidUnresolvedAppointments) {
-			console.log(`************ERROR************`);
-			console.log(invalidUnresolvedAppointments);
-			console.log(`********END ERROR************`);
-			unresolvedAppointments = unresolvedAppointments.filter(x=> invalidUnresolvedAppointments.ids.include(x.AppointmentId))
-		}
+
 		const completedSessions = unresolvedAppointments.length >0
 		? await processSessions(unresolvedAppointments, sql, mssql)
 		: [];
