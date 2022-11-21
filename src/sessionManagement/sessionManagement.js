@@ -21,21 +21,80 @@ const sessionManagement = async (context) => {
 
 		let unresolvedAppointments= await getUnresolvedAppointments(mssql);
 		console.log(`************unresolvedAppointments************`);
+		console.log(unresolvedAppointments.length);
 		console.log(unresolvedAppointments);
 		console.log(`********END unresolvedAppointments************`);
 
 		const completedSessions = unresolvedAppointments.length >0
 		? await processSessions(unresolvedAppointments, sql, mssql)
 		: [];
-		const code = JSON.stringify(completedSessions, null, 4);
+		console.log(`************completedSessions************`);
+		console.log(completedSessions);
+		console.log(`********END completedSessions************`);
+
+		const codeSorted =completedSessions.sort((a,b) =>{
+			if (a.EntityId[0] < b.EntityId[0]) {
+				return -1;
+			}
+			if (a.EntityId[0] > b.EntityId[0]) {
+				return 1;
+			}
+			return 0;
+		})
+		console.log(`************codeSorted************`);
+		console.log(codeSorted);
+		console.log(`********END codeSorted************`);
+		const code = JSON.stringify(codeSorted, null, 4);
 		// summary(completedSessions);
 
-		const completedSessionsSproc = await mssql.request().execute("SessionReconciliation");
-		const sproc = JSON.stringify(completedSessionsSproc.recordset, null, 4);
 
-		if(!code === sproc) {
+const fu = `	BEGIN TRANSACTION
+
+if OBJECT_ID('#temp') is not null 
+
+drop table #temp
+
+select distinct 
+				a.entityId as appointmentId,
+											s.EntityId as sessionId
+	into #temp
+			from 	Appointment a
+					inner join  appointment_Client ac  on a.EntityId = ac.AppointmentID
+					left outer join Session s on ac.ClientID=s.ClientID and a.entityId=s.AppointmentId	and s.SessionUsed = 1 
+			where a.EndTime>'2022-11-15 18:38:06.673' 
+				and a.Completed = 1
+
+update appointment set Completed = 0 where entityId in (select appointmentid from #temp)
+update [Session] set SessionUsed = 0, AppointmentId = null where entityId in (select sessionId from #temp )
+
+COMMIT TRANSACTION
+` 
+
+await mssql.request().query(fu);
+
+
+
+
+
+
+		const completedSessionsSproc = await mssql.request().execute("SessionReconciliation");
+		const sprocSorted =completedSessionsSproc.recordset.sort((a,b) =>{
+			if (a.EntityId[0] < b.EntityId[0]) {
+				return -1;
+			}
+			if (a.EntityId[0] > b.EntityId[0]) {
+				return 1;
+			}
+			return 0;
+		})
+		const sproc = JSON.stringify(sprocSorted, null, 4);
+
+		if(code !== sproc) {
 			console.log(`************diff************`);
-			console.log(code +"\n\n/n/n" +sproc);
+			console.log(completedSessions.length );
+			console.log(code );
+			console.log(completedSessionsSproc.recordset.length);
+			console.log(sproc);
 			console.log(`********END diff************`);
 		} else {
 			console.log(`************"SUCCESS!!!"************`);
@@ -43,7 +102,7 @@ const sessionManagement = async (context) => {
 			console.log(`********END "SUCCESS!!!"************`);
 		}
 
-		summary(completedSessionsSproc);
+		// summary(completedSessionsSproc);
 		context.done(null, "Success");
 	} catch (err) {
 		console.error(err);

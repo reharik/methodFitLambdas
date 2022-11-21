@@ -73,13 +73,13 @@ where entityId in (${appointmentIds.join(",")})
 ;`,
 	completedSessions: (unresolvedAppointmentIds) =>`SELECT
 a.AppointmentType,
-a.entityId,
-u.entityId, 
-u.firstname + ' ' +u.lastname as trainerName, 
-c.entityId,				
-c.firstName +' '+ c.lastname as clientName ,
-a.startTime,
-s.inarrears
+a.EntityId,
+u.EntityId, 
+u.firstname + ' ' +u.lastname as TrainerName, 
+c.EntityId,				
+c.firstName +' '+ c.lastname as ClientName ,
+a.StartTime,
+s.Inarrears
 FROM appointment a 
 inner join session s on a.entityId = s.appointmentId
 inner join [user] u on a.trainerId = u.entityId
