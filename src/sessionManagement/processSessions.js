@@ -2,9 +2,6 @@ const processInArrears = require('./processInArrears');
 const  sqlQueries  = require('./sqlQueries');
 
 const processSessions = async (unresolvedAppointments, sql, mssql) => {
-	console.log(`************unresolvedAppointments************`);
-	console.log(unresolvedAppointments);
-	console.log(`********END unresolvedAppointments************`);
 	const inArrears = unresolvedAppointments.filter(x=>x.inArrears);	
 	const appointments = unresolvedAppointments.filter( x=> !x.inArrears);
 	try {
