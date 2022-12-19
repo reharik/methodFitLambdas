@@ -52,8 +52,8 @@ provider:
 package:
   include:
     - src/**
-#  exclude:
-#    - exclude-me.js
+  exclude:
+    - .history/**
 #    - exclude-me-dir/**
 
 functions:
