@@ -1,73 +1,60 @@
+const processInArrears = require('./processInArrears');
 const  sqlQueries  = require('./sqlQueries');
 
 const processSessions = async (unresolvedAppointments, sql, mssql) => {
+	console.log(`************unresolvedAppointments************`);
+	console.log(unresolvedAppointments);
+	console.log(`********END unresolvedAppointments************`);
+	const inArrears = unresolvedAppointments.filter(x=>x.inArrears);	
+	const appointments = unresolvedAppointments.filter( x=> !x.inArrears);
 	try {
 		let sqlString = '';
 		let i = 0;
-		let appointmentIds = []
-		let squery=[];
-		let span=0;
-		while(i<unresolvedAppointments.length) {
-			const unresolved = unresolvedAppointments[i];
-// this doesn't fukcing work cuz it's immeadiate and the query is building upa string.
+		let summaryAppointmentIds = [];
+		while(i<appointments.length) {
+			const unresolved = appointments[i];
+
 			const sessionIdQuery = await mssql.request().query(sqlQueries.getSession(unresolved));
 			const sessionId = sessionIdQuery.recordset[0]?.entityid;
-			
-			if(sessionId == null) {
-				sqlString += sqlQueries.inArrears(unresolved);
-			} else {
-				sqlString += sqlQueries.updateSession(unresolved, sessionId);
+			if(!sessionId) {
+				inArrears.push(unresolved);
+				i++;
+				continue;
 			}
-
-			appointmentIds.push(unresolved.AppointmentId);
-
-			if(sqlString.length>3300 || i === unresolvedAppointments.length -1){
-				sqlString += sqlQueries.updateAppointment(appointmentIds);
-				// console.log(`************sqlString************`);
-				// console.log(sqlString);
-				// console.log(`********END sqlString************`);
-				let transaction = new sql.Transaction(/* [pool] */)
-				try {
-					transaction = await transaction.begin();
-					const request = new sql.Request(transaction)
-					await request.query(sqlString);
-					
-					// const ids = unresolvedAppointments.slice(span, i+1).map(x => x.AppointmentId).join(',');			
-					// // for debugging and comparison to sproc purposes
-					// const sessionsQuery = await request.query(sqlQueries.completedSessions(ids));
-					// squery = [...squery, ...sessionsQuery.recordset];
-
-					await	transaction.commit();
-					// console.log(`************"commit in success"************`);
-					console.log("commit in success");
-					// console.log(`********END "commit in success"************`);
-				}catch(err) {
-					console.log(`************err************`);
-					console.log(err);
-					console.log(`********END err************`);
-					await transaction.rollback();
-				}
-				span = i;
-				sqlString = ''
-				appointmentIds=[];
+			summaryAppointmentIds.push(unresolved.AppointmentId);
+			sqlString += sqlQueries.updateSession(unresolved, sessionId);
+			sqlString += sqlQueries.updateAppointment([unresolved.AppointmentId]);
+			let transaction = new sql.Transaction(/* [pool] */)
+			try {
+				transaction = await transaction.begin();
+				const request = new sql.Request(transaction)
+				await request.query(sqlString);
+				await	transaction.commit();
+			}catch(err) {
+				console.log(`************err************`);
+				console.log(err);
+				console.log(`********END err************`);
+				await transaction.rollback();
+				throw(err);
 			}
+			sqlString = ''
 			i++;
+		}		
+
+		if(inArrears.length>0) {
+			const inArrearsIds = await processInArrears(inArrears,sql);
+			summaryAppointmentIds = [...summaryAppointmentIds, ...inArrearsIds];
 		}
-		// return squery;
+
+		const request = mssql.request();
+		const sessionsQuery = await request.query(sqlQueries.completedSessions(summaryAppointmentIds));
+		return sessionsQuery.recordset;
 	} catch (err) { 
 		console.log(`************err.messagage************`);
 		console.log(err);
 		console.log(`********END err.messagage************`);
 		throw err;
 	}
-	
-	// not necessary since I'm rolling back so the query will be empty
-	const request = mssql.request();
-	const ids = unresolvedAppointments.map(x => x.AppointmentId).join(',');			
-	const sessionsQuery = await request.query(sqlQueries.completedSessions(ids));
-	return sessionsQuery.recordset;
-
-
 }
 
 module.exports = processSessions;
