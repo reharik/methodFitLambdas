@@ -73,10 +73,10 @@ where entityId in (${appointmentIds.join(",")})
 ;`,
 	completedSessions: (unresolvedAppointmentIds) =>`SELECT
 a.AppointmentType,
-a.EntityId,
-u.EntityId, 
+a.EntityId as AppointmentId,
+u.EntityId as TrainerId, 
 u.firstname + ' ' +u.lastname as TrainerName, 
-c.EntityId,				
+c.EntityId as ClientId,				
 c.firstName +' '+ c.lastname as ClientName ,
 a.StartTime,
 s.Inarrears
