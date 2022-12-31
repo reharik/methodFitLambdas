@@ -1,9 +1,6 @@
 const {DateTime} = require("luxon");
 
 const summary = (sessions) => {
-	console.log(`************session************`);
-	console.log(sessions);
-	console.log(`********END session************`);
 	(sessions || []).forEach((s) => {
 		console.log(
 			`completed ${s.AppointmentType}, aptId:${s.AppointmentId} for trainer:${
@@ -12,7 +9,7 @@ const summary = (sessions) => {
 				s.ClientName
 			} on date: ${DateTime.fromISO(s.StartTime).toFormat("ff")}`
 		); 
-		if (s.Inarrears) {
+		if (s.InArrears) {
 			console.log(`Client:${0}, ID:{1} was in arrears`);
 		}
 	});

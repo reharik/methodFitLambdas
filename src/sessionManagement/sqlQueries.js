@@ -1,36 +1,34 @@
 const {DateTime} = require('luxon');
+const nowISO =  DateTime.now().minus({"hours":5}).toISO()
+const now = nowISO.substring(0,nowISO.indexOf("+"));
 
  const sqlQueries = {
 	getUnresolvedAppointment: () => `select distinct 
 	a.entityId as AppointmentId,
 	ac.ClientId,
 	a.TrainerId,
-	s.InArrears,
-	s.SessionUsed,
 	a.AppointmentType
 from Appointment a
 		inner join appointment_Client ac on a.EntityId = ac.AppointmentID
 			and a.Completed = 0	
-			and a.EndTime< CONVERT(datetime2, '${new Date().toISOString()}', 126)
-		left outer join Session s on ac.ClientID=s.ClientID
-			and a.AppointmentType=s.AppointmentType and s.SessionUsed = 0
+			and a.EndTime< CONVERT(datetime2, '${now}', 126)
 `,
 	inArrears:(unresolved) => `insert into Session (
 IsDeleted,
 CompanyId,
-cost,
+Cost,
 AppointmentType,
 SessionUsed,
 TrainerPaid,
 TrainerCheckNumber,
 InArrears,
 ClientID,
-appointmentId,
-trainerId,
+AppointmentId,
+TrainerId,
 TrainerVerified,
-createdDate,
-createdById,
-changedDate,
+CreatedDate,
+CreatedById,
+ChangedDate,
 ChangedById
 )
 values (
@@ -46,12 +44,12 @@ ${unresolved.ClientId},
 ${unresolved.AppointmentId},
 ${unresolved.TrainerId},
 0,
-'${new Date().toISOString()}',
+'${now}',
 17,
-'${new Date().toISOString()}',
+'${now}',
 17);
 ;`,
-	getSession: (unresolved) => `select top 1 entityid from session
+	getSession: (unresolved) => `select top 1 EntityId from session
 where ClientID=${unresolved.ClientId}
 and AppointmentType='${unresolved.AppointmentType}'
 and SessionUsed=0
@@ -61,14 +59,14 @@ order by createddate
 SessionUsed=1,
 appointmentId = ${unresolved.AppointmentId},
 trainerId = ${unresolved.TrainerId},
-changedDate = '${new Date().toISOString()}',
+changedDate = '${now}',
 changedById = 17
 WHERE entityId = ${sessionId};
 ;`,
 	updateAppointment: (appointmentIds) => `update Appointment set 
 Completed=1,
 ChangedById=17,
-ChangedDate='${new Date().toISOString()}'
+ChangedDate='${now}'
 where entityId in (${appointmentIds.join(",")})
 ;`,
 	completedSessions: (unresolvedAppointmentIds) =>`SELECT
@@ -79,7 +77,7 @@ u.firstname + ' ' +u.lastname as TrainerName,
 c.EntityId as ClientId,				
 c.firstName +' '+ c.lastname as ClientName ,
 a.StartTime,
-s.Inarrears
+s.InArrears
 FROM appointment a 
 inner join session s on a.entityId = s.appointmentId
 inner join [user] u on a.trainerId = u.entityId

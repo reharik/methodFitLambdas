@@ -2,17 +2,19 @@ const processInArrears = require('./processInArrears');
 const  sqlQueries  = require('./sqlQueries');
 
 const processSessions = async (unresolvedAppointments, sql, mssql) => {
-	const inArrears = unresolvedAppointments.filter(x=>x.inArrears);	
-	const appointments = unresolvedAppointments.filter( x=> !x.inArrears);
+console.log(`************unresolvedAppointments************`);
+console.log(JSON.stringify(unresolvedAppointments, null, 4));
+console.log(`********END unresolvedAppointments************`);
+	const inArrears = [];
 	try {
 		let sqlString = '';
 		let i = 0;
 		let summaryAppointmentIds = [];
-		while(i<appointments.length) {
-			const unresolved = appointments[i];
+		while(i<unresolvedAppointments.length) {
+			const unresolved = unresolvedAppointments[i];
 
 			const sessionIdQuery = await mssql.request().query(sqlQueries.getSession(unresolved));
-			const sessionId = sessionIdQuery.recordset[0]?.entityid;
+			const sessionId = sessionIdQuery.recordset[0]?.EntityId;
 			if(!sessionId) {
 				inArrears.push(unresolved);
 				i++;
@@ -29,6 +31,7 @@ const processSessions = async (unresolvedAppointments, sql, mssql) => {
 				await	transaction.commit();
 			}catch(err) {
 				console.log(`************err************`);
+				console.log("[processSession] Error in transaction")
 				console.log(err);
 				console.log(`********END err************`);
 				await transaction.rollback();
@@ -48,6 +51,7 @@ const processSessions = async (unresolvedAppointments, sql, mssql) => {
 		return sessionsQuery.recordset;
 	} catch (err) { 
 		console.log(`************err.messagage************`);
+		console.log("[processSessions] Error in iteration")
 		console.log(err);
 		console.log(`********END err.messagage************`);
 		throw err;
