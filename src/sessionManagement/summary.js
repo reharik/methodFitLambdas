@@ -7,7 +7,7 @@ const summary = (sessions) => {
 				s.TrainerId
 			}-${s.TrainerName} and client:${s.ClientId}-${
 				s.ClientName
-			} on date: ${DateTime.fromISO(s.StartTime).toFormat("ff")}`
+			} at: ${DateTime.fromSQL(s.StartTime).toFormat("ff")}`
 		); 
 		if (s.InArrears) {
 			console.log(`Client:${0}, ID:{1} was in arrears`);
