@@ -82,7 +82,7 @@ FROM appointment a
 inner join session s on a.entityId = s.appointmentId
 inner join [user] u on a.trainerId = u.entityId
 inner join appointment_client ac on a.entityId = ac.AppointmentId
-inner join client c on ac.clientId= c.entityId
+inner join client c on ac.clientId= c.entityId and c.EntityId = s.ClientId
 WHERE a.entityId in (${unresolvedAppointmentIds})
 ;`,
 } 

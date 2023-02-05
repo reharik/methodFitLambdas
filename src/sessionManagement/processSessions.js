@@ -21,9 +21,6 @@ console.log(`********END unresolvedAppointments************`);
 				continue;
 			}
 			summaryAppointmentIds.push(unresolved.AppointmentId);
-			console.log(`************summaryAppointmentIds************`);
-			console.log(summaryAppointmentIds);
-			console.log(`********END summaryAppointmentIds************`);
 			sqlString += sqlQueries.updateSession(unresolved, sessionId);
 			sqlString += sqlQueries.updateAppointment(unresolved.AppointmentId);
 			let transaction = new sql.Transaction(/* [pool] */)
@@ -48,9 +45,7 @@ console.log(`********END unresolvedAppointments************`);
 			const inArrearsIds = await processInArrears(inArrears,sql);
 			summaryAppointmentIds = [...summaryAppointmentIds, ...inArrearsIds];
 		}
-console.log(`************SUMMARYAPPOINTMENTIDS************`);
-console.log(summaryAppointmentIds);
-console.log(`********END SUMMARYAPPOINTMENTIDS************`);
+
 		const request = mssql.request();
 		const sessionsQuery = await request.query(sqlQueries.completedSessions(summaryAppointmentIds));
 		return sessionsQuery.recordset;
