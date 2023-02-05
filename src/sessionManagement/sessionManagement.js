@@ -33,5 +33,3 @@ const sessionManagement = async (context) => {
 };
 
 module.exports = sessionManagement;
-
-
