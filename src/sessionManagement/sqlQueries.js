@@ -63,11 +63,11 @@ changedDate = '${now}',
 changedById = 17
 WHERE entityId = ${sessionId};
 ;`,
-	updateAppointment: (appointmentIds) => `update Appointment set 
+	updateAppointment: (appointmentId) => `update Appointment set 
 Completed=1,
 ChangedById=17,
 ChangedDate='${now}'
-where entityId in (${appointmentIds.join(",")})
+where entityId = ${appointmentId}
 ;`,
 	completedSessions: (unresolvedAppointmentIds) =>`SELECT
 a.AppointmentType,

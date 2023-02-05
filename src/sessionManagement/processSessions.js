@@ -22,7 +22,7 @@ console.log(`********END unresolvedAppointments************`);
 			}
 			summaryAppointmentIds.push(unresolved.AppointmentId);
 			sqlString += sqlQueries.updateSession(unresolved, sessionId);
-			sqlString += sqlQueries.updateAppointment([unresolved.AppointmentId]);
+			sqlString += sqlQueries.updateAppointment(unresolved.AppointmentId);
 			let transaction = new sql.Transaction(/* [pool] */)
 			try {
 				transaction = await transaction.begin();
