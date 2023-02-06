@@ -5,15 +5,15 @@ const summary = (sessions) => {
 		console.log(`************s.StartTime************`);
 		console.log(s.StartTime);
 		console.log(typeof s.StartTime);
-		console.log(DateTime.fromSQL(s.StartTime));
-		console.log(DateTime.fromSQL(s.StartTime).toFormat("ff"));
+		console.log(DateTime.fromJSDate(s.StartTime));
+		console.log(DateTime.fromJSDate(s.StartTime).toFormat("ff"));
 		console.log(`********END s.StartTime************`);
 		console.log(
 			`completed ${s.AppointmentType}, aptId:${s.AppointmentId} for trainer:${
 				s.TrainerId
 			}-${s.TrainerName} and client:${s.ClientId}-${
 				s.ClientName
-			} at: ${DateTime.fromSQL(s.StartTime).toFormat("ff")}`
+			} at: ${DateTime.fromJSDate(s.StartTime).toFormat("ff")}`
 		); 
 		if (s.InArrears) {
 			console.log(`Client:${0}, ID:{1} was in arrears`);
